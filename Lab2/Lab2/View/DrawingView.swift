@@ -9,6 +9,7 @@ struct DrawingView: View {
     @State private var selectedTool: String = "Line"
     @State private var selectedColor: Color = .black
     @State private var selectedWidth: CGFloat = 2
+    @State private var selectedRule: String = "True"
     
     var body: some View {
         VStack {
@@ -33,12 +34,27 @@ struct DrawingView: View {
                 HStack {
                     Text("Выберите толщину")
                     Spacer()
+                    Text("\(Int(selectedWidth))")
+                    Spacer()
                     Slider(value: $selectedWidth, in: 1...15) {
                     }
-                    .frame(maxWidth: 190)
+                    .frame(maxWidth: 170)
                 }
                 .frame(minHeight: 40)
                 
+                if selectedTool != "Line" && selectedTool != "Straight" {
+                    HStack {
+                        Text("Правильные фигуры")
+                        Spacer()
+                        Picker(selection: $selectedRule, label: Text("Выберите правило")) {
+                            Text("Да").tag("True")
+                            Text("Нет").tag("False")
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .frame(minHeight: 40)
+                    }
+                    .frame(minHeight: 40)
+                }
                 HStack {
                     Button("Очистить", action: {
                         lines = [Line]()
@@ -83,8 +99,8 @@ struct DrawingView: View {
                 
                 for ellipse in ellipses {
                     let width = ellipse.width
-                    let height = ellipse.height
-                    
+                    var height = ellipse.height
+                   
                     var path = Path()
                     path.addEllipse(in: CGRect(origin: ellipse.origin,
                                                size: CGSize(width: width,
@@ -98,11 +114,12 @@ struct DrawingView: View {
                 
                 for rectangle in rectangles {
                     let width = rectangle.width
-                    
+                    var height = rectangle.height
+                   
                     var path = Path()
                     path.addRect(CGRect(origin: rectangle.origin,
                                         size: CGSize(width: width,
-                                                     height: width)))
+                                                     height: height)))
                     
                     context.stroke(
                         path,
@@ -140,8 +157,13 @@ struct DrawingView: View {
                                                 lineWidth: selectedWidth))
                     } else {
                         let index = ellipses.count - 1
+                        
                         ellipses[index].width = value.translation.width
-                        ellipses[index].height = value.translation.height
+                        if selectedRule == "True" {
+                            ellipses[index].height = ellipses[index].width
+                        } else {
+                            ellipses[index].height = value.translation.height
+                        }
                     }
                     
                 case "Rectangle":
@@ -155,7 +177,11 @@ struct DrawingView: View {
                     } else {
                         let index = rectangles.count - 1
                         rectangles[index].width = value.translation.width
-                        rectangles[index].height = value.translation.height
+                        if selectedRule == "True" {
+                            rectangles[index].height = rectangles[index].width
+                        } else {
+                            rectangles[index].height = value.translation.height
+                        }
                     }
                     
                 default:
@@ -172,7 +198,7 @@ struct DrawingView: View {
             }))
             Divider()
 
-        }
+        }.background(Color(.systemMint))
     }
 }
 
