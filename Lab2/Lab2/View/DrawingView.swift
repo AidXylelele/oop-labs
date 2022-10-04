@@ -65,10 +65,17 @@ struct DrawingView: View {
                         .foregroundColor(.red)
                     Spacer()
                     Button("Undo", action: {
-                        _ = lines.popLast()
-                       _ = straights.popLast()
-                        _ = ellipses.popLast()
-                        _ = rectangles.popLast()
+                        switch selectedTool {
+                        case "Line":
+                            _ = lines.popLast()
+                        case "Straight":
+                            _ = straights.popLast()
+                        case "Ellipse":
+                            _ = ellipses.popLast()
+                        case "Rectangle":
+                            _ = rectangles.popLast()
+                        default: return
+                        }
                     })
                         .foregroundColor(.blue)
                 }
@@ -99,7 +106,7 @@ struct DrawingView: View {
                 
                 for ellipse in ellipses {
                     let width = ellipse.width
-                    var height = ellipse.height
+                    let height = ellipse.height
                    
                     var path = Path()
                     path.addEllipse(in: CGRect(origin: ellipse.origin,
@@ -114,7 +121,7 @@ struct DrawingView: View {
                 
                 for rectangle in rectangles {
                     let width = rectangle.width
-                    var height = rectangle.height
+                    let height = rectangle.height
                    
                     var path = Path()
                     path.addRect(CGRect(origin: rectangle.origin,
