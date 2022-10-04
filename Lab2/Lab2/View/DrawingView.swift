@@ -62,7 +62,7 @@ struct DrawingView: View {
                         ellipses = [Ellipse]()
                         rectangles = [Rectangle]()
                     })
-                        .foregroundColor(.red)
+                    .foregroundColor(.red)
                     Spacer()
                     Button("Undo", action: {
                         switch selectedTool {
@@ -77,7 +77,7 @@ struct DrawingView: View {
                         default: return
                         }
                     })
-                        .foregroundColor(.blue)
+                    .foregroundColor(.blue)
                 }
                 .frame(minHeight: 40)
             }
@@ -107,7 +107,7 @@ struct DrawingView: View {
                 for ellipse in ellipses {
                     let width = ellipse.width
                     let height = ellipse.height
-                   
+                    
                     var path = Path()
                     path.addEllipse(in: CGRect(origin: ellipse.origin,
                                                size: CGSize(width: width,
@@ -122,7 +122,7 @@ struct DrawingView: View {
                 for rectangle in rectangles {
                     let width = rectangle.width
                     let height = rectangle.height
-                   
+                    
                     var path = Path()
                     path.addRect(CGRect(origin: rectangle.origin,
                                         size: CGSize(width: width,
@@ -146,17 +146,17 @@ struct DrawingView: View {
                                                   lineWidth: selectedWidth))
                     } else {
                         let index = straights.count - 1
-
+                        
                         if straights[index].points.count == 2 {
                             straights[index].points[1] = lastPoint
                         } else {
                             straights[index].points.append(lastPoint)
                         }
                     }
-
+                    
                 case "Ellipse":
                     if value.translation.width + value.translation.height == 0 {
-                    let firstPoint = value.startLocation
+                        let firstPoint = value.startLocation
                         ellipses.append(Ellipse(origin: firstPoint,
                                                 width: 0,
                                                 height: 0,
@@ -175,12 +175,12 @@ struct DrawingView: View {
                     
                 case "Rectangle":
                     if value.translation.width + value.translation.height == 0 {
-                    let firstPoint = value.startLocation
+                        let firstPoint = value.startLocation
                         rectangles.append(Rectangle(origin: firstPoint,
-                                                width: 0,
-                                                height: 0,
-                                                color: selectedColor,
-                                                lineWidth: selectedWidth))
+                                                    width: 0,
+                                                    height: 0,
+                                                    color: selectedColor,
+                                                    lineWidth: selectedWidth))
                     } else {
                         let index = rectangles.count - 1
                         rectangles[index].width = value.translation.width
@@ -204,7 +204,7 @@ struct DrawingView: View {
                 }
             }))
             Divider()
-
+            
         }.background(Color(.systemMint))
     }
 }
