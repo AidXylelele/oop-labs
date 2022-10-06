@@ -19,6 +19,7 @@ struct Ellipse {
     var height: CGFloat
     var color: Color
     var lineWidth: CGFloat
+    var backgroundColor: Color
 }
 
 struct Rectangle {
@@ -27,4 +28,5 @@ struct Rectangle {
     var height: CGFloat
     var color: Color
     var lineWidth: CGFloat
+    var backgroundColor: Color
 }

@@ -10,6 +10,7 @@ struct DrawingView: View {
     @State private var selectedColor: Color = .black
     @State private var selectedWidth: CGFloat = 2
     @State private var selectedRule: String = "True"
+    @State private var selectedColorFill: Color = .red
     
     var body: some View {
         VStack {
@@ -24,7 +25,7 @@ struct DrawingView: View {
                 .frame(minHeight: 40)
                 
                 HStack {
-                    Text("Выберите цвет")
+                    Text("Цвет обводки")
                     Spacer()
                     ColorPicker("Выберите цвет", selection: $selectedColor)
                         .labelsHidden()
@@ -32,7 +33,7 @@ struct DrawingView: View {
                 .frame(minHeight: 40)
                 
                 HStack {
-                    Text("Выберите толщину")
+                    Text("Толщина обводки")
                     Spacer()
                     Text("\(Int(selectedWidth))")
                     Spacer()
@@ -43,6 +44,13 @@ struct DrawingView: View {
                 .frame(minHeight: 40)
                 
                 if selectedTool != "Line" && selectedTool != "Straight" {
+                    HStack {
+                        Text("Цвет наполнения")
+                        Spacer()
+                        ColorPicker("Выберите цвет", selection: $selectedColorFill)
+                            .labelsHidden()
+                    }
+                    .frame(minHeight: 40)
                     HStack {
                         Text("Правильные фигуры")
                         Spacer()
@@ -112,6 +120,9 @@ struct DrawingView: View {
                     path.addEllipse(in: CGRect(origin: ellipse.origin,
                                                size: CGSize(width: width,
                                                             height: height)))
+                    context.fill(
+                        path,
+                        with: .color(ellipse.backgroundColor))
                     
                     context.stroke(
                         path,
@@ -127,6 +138,11 @@ struct DrawingView: View {
                     path.addRect(CGRect(origin: rectangle.origin,
                                         size: CGSize(width: width,
                                                      height: height)))
+                    
+                    
+                    context.fill(
+                        path,
+                        with: .color(rectangle.backgroundColor))
                     
                     context.stroke(
                         path,
@@ -161,7 +177,8 @@ struct DrawingView: View {
                                                 width: 0,
                                                 height: 0,
                                                 color: selectedColor,
-                                                lineWidth: selectedWidth))
+                                                lineWidth: selectedWidth,
+                                                backgroundColor: selectedColorFill))
                     } else {
                         let index = ellipses.count - 1
                         
@@ -180,7 +197,8 @@ struct DrawingView: View {
                                                     width: 0,
                                                     height: 0,
                                                     color: selectedColor,
-                                                    lineWidth: selectedWidth))
+                                                    lineWidth: selectedWidth,
+                                                    backgroundColor: selectedColorFill))
                     } else {
                         let index = rectangles.count - 1
                         rectangles[index].width = value.translation.width
