@@ -1,32 +1,69 @@
 import Foundation
 import SwiftUI
+import Combine
 
-struct Line {
-    var points: [CGPoint]
-    var color: Color
-    var lineWidth: CGFloat
+class ObservableArray<T>: ObservableObject {
+    @Published var array:[T] = []
+    
+    init(array: [T]) {
+        self.array = array
+    }
 }
 
-struct Straight {
-    var points: [CGPoint]
+class Tool: ObservableObject {
     var color: Color
     var lineWidth: CGFloat
+    
+    init(color: Color, lineWidth: CGFloat) {
+        self.color = color
+        self.lineWidth = lineWidth
+    }
 }
 
-struct Ellipse {
+class Line: Tool {
+    var points: [CGPoint]
+    
+    init(points: [CGPoint], color: Color, lineWidth: CGFloat) {
+        self.points = points
+        super.init(color: color, lineWidth: lineWidth)
+    }
+}
+
+class Straight: Tool {
+    var points: [CGPoint]
+    
+    init(points: [CGPoint], color: Color, lineWidth: CGFloat) {
+        self.points = points
+        super.init(color: color, lineWidth: lineWidth)
+    }
+}
+
+class Ellipse: Tool {
     var origin: CGPoint
     var width: CGFloat
     var height: CGFloat
-    var color: Color
-    var lineWidth: CGFloat
     var backgroundColor: Color
+    
+    init(origin: CGPoint, width: CGFloat, height: CGFloat, color: Color, lineWidth: CGFloat, backgroundColor: Color) {
+        self.origin = origin
+        self.width = width
+        self.height = height
+        self.backgroundColor = backgroundColor
+        super.init(color: color, lineWidth: lineWidth)
+    }
 }
 
-struct Rectangle {
+class Rectangle: Tool {
     var origin: CGPoint
     var width: CGFloat
     var height: CGFloat
-    var color: Color
-    var lineWidth: CGFloat
     var backgroundColor: Color
+    
+    init(origin: CGPoint, width: CGFloat, height: CGFloat, color: Color, lineWidth: CGFloat, backgroundColor: Color) {
+        self.origin = origin
+        self.width = width
+        self.height = height
+        self.backgroundColor = backgroundColor
+        super.init(color: color, lineWidth: lineWidth)
+    }
 }

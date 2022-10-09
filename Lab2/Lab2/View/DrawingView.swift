@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct DrawingView: View {
-    @State private var lines = [Line]()
-    @State private var straights = [Straight]()
-    @State private var ellipses = [Ellipse]()
-    @State private var rectangles = [Rectangle]()
+    @ObservedObject var lines: ObservableArray<Line> = ObservableArray(array: [])
+    @ObservedObject var straights: ObservableArray<Straight> = ObservableArray(array: [])
+    @ObservedObject var ellipses: ObservableArray<Ellipse> = ObservableArray(array: [])
+    @ObservedObject var rectangles: ObservableArray<Rectangle> = ObservableArray(array: [])
     
     @State private var selectedTool: String = "Line"
     @State private var selectedColor: Color = .black
@@ -65,23 +65,23 @@ struct DrawingView: View {
                 }
                 HStack {
                     Button("Очистить", action: {
-                        lines = [Line]()
-                        straights = [Straight]()
-                        ellipses = [Ellipse]()
-                        rectangles = [Rectangle]()
+                        lines.array = []
+                        straights.array = []
+                        ellipses.array = []
+                        rectangles.array = []
                     })
                     .foregroundColor(.red)
                     Spacer()
                     Button("Undo", action: {
                         switch selectedTool {
                         case "Line":
-                            _ = lines.popLast()
+                            _ = lines.array.popLast()
                         case "Straight":
-                            _ = straights.popLast()
+                            _ = straights.array.popLast()
                         case "Ellipse":
-                            _ = ellipses.popLast()
+                            _ = ellipses.array.popLast()
                         case "Rectangle":
-                            _ = rectangles.popLast()
+                            _ = rectangles.array.popLast()
                         default: return
                         }
                     })
@@ -94,7 +94,7 @@ struct DrawingView: View {
             Divider()
             
             Canvas { context, size in
-                for line in lines {
+                for line in lines.array {
                     var path = Path()
                     path.addLines(line.points)
                     
@@ -103,7 +103,7 @@ struct DrawingView: View {
                                    lineWidth: line.lineWidth)
                 }
                 
-                for straight in straights {
+                for straight in straights.array {
                     var path = Path()
                     path.addLines(straight.points)
                     
@@ -112,7 +112,7 @@ struct DrawingView: View {
                                    lineWidth: straight.lineWidth)
                 }
                 
-                for ellipse in ellipses {
+                for ellipse in ellipses.array {
                     let width = ellipse.width
                     let height = ellipse.height
                     
@@ -130,7 +130,7 @@ struct DrawingView: View {
                         lineWidth: ellipse.lineWidth)
                 }
                 
-                for rectangle in rectangles {
+                for rectangle in rectangles.array {
                     let width = rectangle.width
                     let height = rectangle.height
                     
@@ -152,72 +152,76 @@ struct DrawingView: View {
             }
             .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local).onChanged({ value in
                 
+                
                 switch selectedTool {
                 case "Straight":
                     let lastPoint = value.location
                     if value.translation.width + value.translation.height == 0 {
                         let firstPoint = value.location
-                        straights.append(Straight(points: [firstPoint],
-                                                  color: selectedColor,
-                                                  lineWidth: selectedWidth))
+                        straights.array.append(Straight(points: [firstPoint],
+                                                        color: selectedColor,
+                                                        lineWidth: selectedWidth))
                     } else {
-                        let index = straights.count - 1
+                        let index = straights.array.count - 1
                         
-                        if straights[index].points.count == 2 {
-                            straights[index].points[1] = lastPoint
+                        if straights.array[index].points.count == 2 {
+                            straights.objectWillChange.send()
+                            straights.array[index].points[1] = lastPoint
                         } else {
-                            straights[index].points.append(lastPoint)
+                            straights.array[index].points.append(lastPoint)
                         }
                     }
                     
                 case "Ellipse":
                     if value.translation.width + value.translation.height == 0 {
                         let firstPoint = value.startLocation
-                        ellipses.append(Ellipse(origin: firstPoint,
-                                                width: 0,
-                                                height: 0,
-                                                color: selectedColor,
-                                                lineWidth: selectedWidth,
-                                                backgroundColor: selectedColorFill))
+                        ellipses.array.append(Ellipse(origin: firstPoint,
+                                                      width: 0,
+                                                      height: 0,
+                                                      color: selectedColor,
+                                                      lineWidth: selectedWidth,
+                                                      backgroundColor: selectedColorFill))
                     } else {
-                        let index = ellipses.count - 1
-                        
-                        ellipses[index].width = value.translation.width
+                        let index = ellipses.array.count - 1
+                        ellipses.objectWillChange.send()
+                        ellipses.array[index].width = value.translation.width
                         if selectedRule == "True" {
-                            ellipses[index].height = ellipses[index].width
+                            ellipses.array[index].height = ellipses.array[index].width
                         } else {
-                            ellipses[index].height = value.translation.height
+                            ellipses.array[index].height = value.translation.height
                         }
                     }
                     
                 case "Rectangle":
                     if value.translation.width + value.translation.height == 0 {
                         let firstPoint = value.startLocation
-                        rectangles.append(Rectangle(origin: firstPoint,
-                                                    width: 0,
-                                                    height: 0,
-                                                    color: selectedColor,
-                                                    lineWidth: selectedWidth,
-                                                    backgroundColor: selectedColorFill))
+                        rectangles.array.append(Rectangle(origin: firstPoint,
+                                                          width: 0,
+                                                          height: 0,
+                                                          color: selectedColor,
+                                                          lineWidth: selectedWidth,
+                                                          backgroundColor: selectedColorFill))
                     } else {
-                        let index = rectangles.count - 1
-                        rectangles[index].width = value.translation.width
+                        let index = rectangles.array.count - 1
+                        rectangles.objectWillChange.send()
+                        rectangles.array[index].width = value.translation.width
                         if selectedRule == "True" {
-                            rectangles[index].height = rectangles[index].width
+                            rectangles.array[index].height = rectangles.array[index].width
                         } else {
-                            rectangles[index].height = value.translation.height
+                            rectangles.array[index].height = value.translation.height
                         }
                     }
                     
                 default:
                     let newPoint = value.location
                     if value.translation.width + value.translation.height == 0 {
-                        lines.append(Line(points: [newPoint],
-                                          color: selectedColor,
-                                          lineWidth: selectedWidth))
+                        lines.array.append(Line(points: [newPoint],
+                                                color: selectedColor,
+                                                lineWidth: selectedWidth))
                     } else {
-                        let index = lines.count - 1
-                        lines[index].points.append(newPoint)
+                        let index = lines.array.count - 1
+                        lines.objectWillChange.send()
+                        lines.array[index].points.append(newPoint)
                     }
                 }
             }))
