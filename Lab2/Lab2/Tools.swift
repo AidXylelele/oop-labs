@@ -13,57 +13,97 @@ class ObservableArray<T>: ObservableObject {
 class Tool: ObservableObject {
     var color: Color
     var lineWidth: CGFloat
+    var points: [CGPoint]
+    var width: CGFloat
+    var height: CGFloat
+    var backgroundColor: Color
     
-    init(color: Color, lineWidth: CGFloat) {
+    init(points: [CGPoint], color: Color, lineWidth: CGFloat, width: CGFloat, height: CGFloat, backgroundColor: Color) {
         self.color = color
         self.lineWidth = lineWidth
+        self.points = points
+        self.height = height
+        self.width = width
+        self.backgroundColor = backgroundColor
     }
+    
+    func show(figure: Tool, context: GraphicsContext) {}
 }
 
 class Line: Tool {
-    var points: [CGPoint]
-    
     init(points: [CGPoint], color: Color, lineWidth: CGFloat) {
-        self.points = points
-        super.init(color: color, lineWidth: lineWidth)
+        super.init(points: points, color: color, lineWidth: lineWidth, width: 0, height: 0, backgroundColor: .clear)
     }
+    
+    override func show(figure: Tool, context: GraphicsContext) {
+        var path = Path()
+        path.addLines(figure.points)
+        context.stroke(path,
+                       with: .color(figure.color),
+                       lineWidth: figure.lineWidth)
+    }
+    
 }
 
-class Straight: Tool {
-    var points: [CGPoint]
+class Point: Tool {
+    override init(points: [CGPoint], color: Color, lineWidth: CGFloat, width: CGFloat, height: CGFloat, backgroundColor: Color) {
+        super.init(points: points, color: color, lineWidth: lineWidth, width: width, height: height, backgroundColor: backgroundColor)
+    }
     
-    init(points: [CGPoint], color: Color, lineWidth: CGFloat) {
-        self.points = points
-        super.init(color: color, lineWidth: lineWidth)
+    override func show(figure: Tool, context: GraphicsContext) {
+        var path = Path()
+        path.addEllipse(in: CGRect(origin: figure.points[0],
+                                   size: CGSize(width: 3,
+                                                height: 3)))
+        context.fill(
+            path,
+            with: .color(.black))
+        
+        context.stroke(
+            path,
+            with: .color(figure.color),
+            lineWidth: figure.lineWidth)
     }
 }
 
 class Ellipse: Tool {
-    var origin: CGPoint
-    var width: CGFloat
-    var height: CGFloat
-    var backgroundColor: Color
+    override init(points: [CGPoint], color: Color, lineWidth: CGFloat, width: CGFloat, height: CGFloat, backgroundColor: Color) {
+        super.init(points: points, color: color, lineWidth: lineWidth, width: width, height: height, backgroundColor: backgroundColor)
+    }
     
-    init(origin: CGPoint, width: CGFloat, height: CGFloat, color: Color, lineWidth: CGFloat, backgroundColor: Color) {
-        self.origin = origin
-        self.width = width
-        self.height = height
-        self.backgroundColor = backgroundColor
-        super.init(color: color, lineWidth: lineWidth)
+    override func show(figure: Tool, context: GraphicsContext) {
+        var path = Path()
+        path.addEllipse(in: CGRect(origin: figure.points[0],
+                                   size: CGSize(width: figure.width,
+                                                height: figure.height)))
+        context.fill(
+            path,
+            with: .color(figure.backgroundColor))
+        
+        context.stroke(
+            path,
+            with: .color(figure.color),
+            lineWidth: figure.lineWidth)
     }
 }
 
 class Rectangle: Tool {
-    var origin: CGPoint
-    var width: CGFloat
-    var height: CGFloat
-    var backgroundColor: Color
+    override init(points: [CGPoint], color: Color, lineWidth: CGFloat, width: CGFloat, height: CGFloat, backgroundColor: Color) {
+        super.init(points: points, color: color, lineWidth: lineWidth, width: width, height: height, backgroundColor: backgroundColor)
+    }
     
-    init(origin: CGPoint, width: CGFloat, height: CGFloat, color: Color, lineWidth: CGFloat, backgroundColor: Color) {
-        self.origin = origin
-        self.width = width
-        self.height = height
-        self.backgroundColor = backgroundColor
-        super.init(color: color, lineWidth: lineWidth)
+    override func show(figure: Tool, context: GraphicsContext) {
+        var path = Path()
+        path.addRect(CGRect(origin: figure.points[0],
+                            size: CGSize(width: width,
+                                         height: height)))
+        context.fill(
+            path,
+            with: .color(figure.backgroundColor))
+        
+        context.stroke(
+            path,
+            with: .color(figure.color),
+            lineWidth: figure.lineWidth)
     }
 }

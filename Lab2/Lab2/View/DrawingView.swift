@@ -1,12 +1,9 @@
 import SwiftUI
+import Foundation
 
 struct DrawingView: View {
-    @ObservedObject var lines: ObservableArray<Line> = ObservableArray(array: [])
-    @ObservedObject var straights: ObservableArray<Straight> = ObservableArray(array: [])
-    @ObservedObject var ellipses: ObservableArray<Ellipse> = ObservableArray(array: [])
-    @ObservedObject var rectangles: ObservableArray<Rectangle> = ObservableArray(array: [])
-    
-    @State private var selectedTool: String = "Line"
+    @ObservedObject var figures: ObservableArray<Tool> = ObservableArray(array: [])
+    @State private var selectedTool: String = "Point"
     @State private var selectedColor: Color = .black
     @State private var selectedWidth: CGFloat = 2
     @State private var selectedRule: String = "True"
@@ -16,6 +13,7 @@ struct DrawingView: View {
         VStack {
             VStack {
                 Picker(selection: $selectedTool, label: Text("Выберите инструмент")) {
+                    Text("Точка").tag("Point")
                     Text("Кривая").tag("Line")
                     Text("Прямая").tag("Straight")
                     Text("Эллипс").tag("Ellipse")
@@ -43,7 +41,7 @@ struct DrawingView: View {
                 }
                 .frame(minHeight: 40)
                 
-                if selectedTool != "Line" && selectedTool != "Straight" {
+                if selectedTool == "Ellipse" || selectedTool == "Rectangle" {
                     HStack {
                         Text("Цвет наполнения")
                         Spacer()
@@ -65,25 +63,12 @@ struct DrawingView: View {
                 }
                 HStack {
                     Button("Очистить", action: {
-                        lines.array = []
-                        straights.array = []
-                        ellipses.array = []
-                        rectangles.array = []
+                        figures.array = []
                     })
                     .foregroundColor(.red)
                     Spacer()
-                    Button("Undo", action: {
-                        switch selectedTool {
-                        case "Line":
-                            _ = lines.array.popLast()
-                        case "Straight":
-                            _ = straights.array.popLast()
-                        case "Ellipse":
-                            _ = ellipses.array.popLast()
-                        case "Rectangle":
-                            _ = rectangles.array.popLast()
-                        default: return
-                        }
+                    Button("Отменить", action: {
+                        _ = figures.array.popLast()
                     })
                     .foregroundColor(.blue)
                 }
@@ -94,134 +79,85 @@ struct DrawingView: View {
             Divider()
             
             Canvas { context, size in
-                for line in lines.array {
-                    var path = Path()
-                    path.addLines(line.points)
-                    
-                    context.stroke(path,
-                                   with: .color(line.color),
-                                   lineWidth: line.lineWidth)
+                for figure in figures.array {
+                    figure.show(figure: figure, context: context)
                 }
                 
-                for straight in straights.array {
-                    var path = Path()
-                    path.addLines(straight.points)
-                    
-                    context.stroke(path,
-                                   with: .color(straight.color),
-                                   lineWidth: straight.lineWidth)
-                }
-                
-                for ellipse in ellipses.array {
-                    let width = ellipse.width
-                    let height = ellipse.height
-                    
-                    var path = Path()
-                    path.addEllipse(in: CGRect(origin: ellipse.origin,
-                                               size: CGSize(width: width,
-                                                            height: height)))
-                    context.fill(
-                        path,
-                        with: .color(ellipse.backgroundColor))
-                    
-                    context.stroke(
-                        path,
-                        with: .color(ellipse.color),
-                        lineWidth: ellipse.lineWidth)
-                }
-                
-                for rectangle in rectangles.array {
-                    let width = rectangle.width
-                    let height = rectangle.height
-                    
-                    var path = Path()
-                    path.addRect(CGRect(origin: rectangle.origin,
-                                        size: CGSize(width: width,
-                                                     height: height)))
-                    
-                    
-                    context.fill(
-                        path,
-                        with: .color(rectangle.backgroundColor))
-                    
-                    context.stroke(
-                        path,
-                        with: .color(rectangle.color),
-                        lineWidth: rectangle.lineWidth)
-                }
             }
             .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local).onChanged({ value in
-                
-                
                 switch selectedTool {
+                    
+                case "Point":
+                    if value.translation.width + value.translation.height == 0  {
+                        let firstPoint = value.startLocation
+                        figures.array.append(Point(points: [firstPoint],color: selectedColor, lineWidth: selectedWidth, width: 0, height: 0, backgroundColor: selectedColorFill))
+                        
+                    } else {
+                        let index = figures.array.count - 1
+                        figures.objectWillChange.send()
+                        figures.array[index].width = value.translation.width
+                        figures.array[index].height = figures.array[index].width
+                        
+                    }
+                    
                 case "Straight":
                     let lastPoint = value.location
                     if value.translation.width + value.translation.height == 0 {
                         let firstPoint = value.location
-                        straights.array.append(Straight(points: [firstPoint],
-                                                        color: selectedColor,
-                                                        lineWidth: selectedWidth))
+                        figures.array.append(Line(points: [firstPoint],
+                                                  color: selectedColor,
+                                                  lineWidth: selectedWidth))
                     } else {
-                        let index = straights.array.count - 1
+                        let index = figures.array.count - 1
                         
-                        if straights.array[index].points.count == 2 {
-                            straights.objectWillChange.send()
-                            straights.array[index].points[1] = lastPoint
+                        if figures.array[index].points.count == 2 {
+                            figures.objectWillChange.send()
+                            figures.array[index].points[1] = lastPoint
                         } else {
-                            straights.array[index].points.append(lastPoint)
+                            figures.array[index].points.append(lastPoint)
                         }
                     }
                     
                 case "Ellipse":
-                    if value.translation.width + value.translation.height == 0 {
+                    if value.translation.width + value.translation.height == 0  {
                         let firstPoint = value.startLocation
-                        ellipses.array.append(Ellipse(origin: firstPoint,
-                                                      width: 0,
-                                                      height: 0,
-                                                      color: selectedColor,
-                                                      lineWidth: selectedWidth,
-                                                      backgroundColor: selectedColorFill))
+                        figures.array.append(Ellipse(points: [firstPoint],color: selectedColor, lineWidth: selectedWidth, width: 0, height: 0, backgroundColor: selectedColorFill))
+                        
                     } else {
-                        let index = ellipses.array.count - 1
-                        ellipses.objectWillChange.send()
-                        ellipses.array[index].width = value.translation.width
+                        let index = figures.array.count - 1
+                        figures.objectWillChange.send()
+                        figures.array[index].width = value.translation.width
                         if selectedRule == "True" {
-                            ellipses.array[index].height = ellipses.array[index].width
+                            figures.array[index].height = figures.array[index].width
                         } else {
-                            ellipses.array[index].height = value.translation.height
+                            figures.array[index].height = value.translation.height
                         }
                     }
                     
                 case "Rectangle":
                     if value.translation.width + value.translation.height == 0 {
                         let firstPoint = value.startLocation
-                        rectangles.array.append(Rectangle(origin: firstPoint,
-                                                          width: 0,
-                                                          height: 0,
-                                                          color: selectedColor,
-                                                          lineWidth: selectedWidth,
-                                                          backgroundColor: selectedColorFill))
+                        figures.array.append(Rectangle(points: [firstPoint],color: selectedColor, lineWidth: selectedWidth, width: 0, height: 0, backgroundColor: selectedColorFill))
                     } else {
-                        let index = rectangles.array.count - 1
-                        rectangles.objectWillChange.send()
-                        rectangles.array[index].width = value.translation.width
+                        let index = figures.array.count - 1
+                        figures.objectWillChange.send()
+                        figures.array[index].width = value.translation.width
                         if selectedRule == "True" {
-                            rectangles.array[index].height = rectangles.array[index].width
+                            figures.array[index].height = figures.array[index].width
                         } else {
-                            rectangles.array[index].height = value.translation.height
+                            figures.array[index].height = value.translation.height
                         }
                     }
-                    
                 default:
                     let newPoint = value.location
                     if value.translation.width + value.translation.height == 0 {
-                        lines.array.append(Line(points: [newPoint],
-                                                color: selectedColor,
-                                                lineWidth: selectedWidth))
+                        figures.array.append(contentsOf: [Line(points: [newPoint],
+                                                               color: selectedColor,
+                                                               lineWidth: selectedWidth)])
                     } else {
-                        let index = lines.array.count - 1
-                        lines.objectWillChange.send()
-                        lines.array[index].points.append(newPoint)
+                        let index = figures.array.count - 1
+                        figures.objectWillChange.send()
+                        figures.array[index].points.append(newPoint)
                     }
                 }
             }))

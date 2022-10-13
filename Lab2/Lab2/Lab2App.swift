@@ -8,3 +8,4 @@ struct Lab2App: App {
         }
     }
 }
+ 
