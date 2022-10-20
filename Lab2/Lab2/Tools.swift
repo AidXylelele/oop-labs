@@ -57,7 +57,7 @@ class Point: Tool {
                                                 height: 3)))
         context.fill(
             path,
-            with: .color(.black))
+            with: .color(figure.color))
         
         context.stroke(
             path,

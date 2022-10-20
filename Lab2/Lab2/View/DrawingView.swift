@@ -84,7 +84,13 @@ struct DrawingView: View {
                 }
                 
             }
-            .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local).onChanged({ value in
+            .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local).onEnded(
+                { _ in
+                    figures.objectWillChange.send()
+                    figures.array[figures.array.count - 1].backgroundColor = selectedColorFill
+                    figures.array[figures.array.count - 1].lineWidth = selectedWidth
+                }
+            ).onChanged({ value in
                 switch selectedTool {
                     
                 case "Point":
@@ -121,7 +127,7 @@ struct DrawingView: View {
                 case "Ellipse":
                     if value.translation.width + value.translation.height == 0  {
                         let firstPoint = value.startLocation
-                        figures.array.append(Ellipse(points: [firstPoint],color: selectedColor, lineWidth: selectedWidth, width: 0, height: 0, backgroundColor: selectedColorFill))
+                        figures.array.append(Ellipse(points: [firstPoint],color: selectedColor, lineWidth: selectedWidth, width: 0, height: 0, backgroundColor: .clear))
                         
                     } else {
                         let index = figures.array.count - 1
@@ -137,7 +143,7 @@ struct DrawingView: View {
                 case "Rectangle":
                     if value.translation.width + value.translation.height == 0 {
                         let firstPoint = value.startLocation
-                        figures.array.append(Rectangle(points: [firstPoint],color: selectedColor, lineWidth: selectedWidth, width: 0, height: 0, backgroundColor: selectedColorFill))
+                        figures.array.append(Rectangle(points: [firstPoint],color: selectedColor, lineWidth: selectedWidth, width: 0, height: 0, backgroundColor: .clear))
                     } else {
                         let index = figures.array.count - 1
                         figures.objectWillChange.send()
